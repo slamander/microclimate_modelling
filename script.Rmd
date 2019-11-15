@@ -1,0 +1,77 @@
+---
+title: 'Microclimate monitoring: FL panhandle'
+author: "J. Alex Baecher"
+date: "11/15/2019"
+output: html_document
+---
+
+```{r load libraries, include=FALSE}
+library(spatstat)
+library(rgdal)
+library(maps)
+library(maptools)
+library(ggplot2)
+library(spocc)
+library(ggmap)
+library(sp)
+library(lidR)
+library(RSQLite)
+library(tidyverse)
+library(raster)
+library(ggthemes)
+library(spatialEco)
+library(tigris)
+library(cowplot)
+library(rgeos)
+```
+
+```{r load data and take random sample of 100 locations from sampling area, message=FALSE, warning=FALSE}
+# creat polygon from extent to random sample
+states <- readShapePoly("data/tl_2019_us_state.shp", proj4string=crs(raster), verbose=TRUE)
+fl_state <- states[states$NAME=="Florida",]
+crs(fl_state)
+e <- as(
+   extent(c(-87.05, -83.99944, 30.2, 30.8)),
+   "SpatialPolygons")
+proj4string(e) <- crs(proj4string(fl_state))
+sample_area <- gIntersection(fl_state, e, byid=T)
+# sampling
+r <- spsample(sample_area, n=500, "random") 
+# extrating coords
+x <- r@coords[,1]
+y <- r@coords[,2]
+
+plot(sample_area)
+points(coords)
+# loading NicheMapR's global meteorological layers
+#get.global.climate()
+```
+
+```{r apply microclimate model to 100 random points}
+# for loop of microclimate model 
+panhandle_climate <- vector(mode="list", length=440)
+data <- list()
+for (i in 1:length(coords)){
+  data <- micro_global(loc = cbind(x[i],y[i]),
+                       timeinterval = 12)
+  panhandle_climate[[i]] <- data$soil
+}
+df <- as.data.frame(panhandle_climate[[1]])
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
